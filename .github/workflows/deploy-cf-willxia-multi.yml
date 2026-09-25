@@ -1,0 +1,165 @@
+name: Deploy to multiple Cloudflare accounts
+
+on:
+  workflow_run:
+    workflows:
+      - "从 cfnew 同步 Releases"
+    types:
+      - completed
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
+
+concurrency:
+  group: deploy-cloudflare-multi-main
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    # workflow_run 仅表示同步任务“结束”；这里额外确保它成功
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 检出当前 main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 2
+
+      - name: 判断此次同步是否更新了仓库
+        id: changed
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "should_deploy=true" >> "$GITHUB_OUTPUT"
+            echo "Manual deployment requested."
+            exit 0
+          fi
+
+          BEFORE_SHA="${{ github.event.workflow_run.head_sha }}"
+          CURRENT_SHA="$(git rev-parse HEAD)"
+
+          echo "sync workflow head SHA: $BEFORE_SHA"
+          echo "current main SHA:       $CURRENT_SHA"
+
+          if [ "$BEFORE_SHA" = "$CURRENT_SHA" ]; then
+            echo "should_deploy=false" >> "$GITHUB_OUTPUT"
+            echo "No repository commit was created by this sync run; skipping deployment."
+          else
+            echo "should_deploy=true" >> "$GITHUB_OUTPUT"
+            echo "Repository changed after the sync workflow began; deployment is required."
+          fi
+
+      - name: 查看待部署目录
+        if: steps.changed.outputs.should_deploy == 'true'
+        run: |
+          ls -la
+          find . -maxdepth 2 -type f | sort | head -100
+
+      - name: 部署到 Cloudflare Account 1
+        if: steps.changed.outputs.should_deploy == 'true'
+        run: |
+          npx wrangler@latest pages deploy . \
+            --project-name=YOUR_PAGES_PROJECT_A \
+            --branch=main
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID_1 }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN_1 }}
+
+      - name: 部署到 Cloudflare Account 2
+        if: steps.changed.outputs.should_deploy == 'true'
+        run: |
+          npx wrangler@latest pages deploy . \
+            --project-name=YOUR_PAGES_PROJECT_B \
+            --branch=main
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID_2 }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN_2 }}
+
+      - name: 部署到 Cloudflare Account 3
+        if: steps.changed.outputs.should_deploy == 'true'
+        run: |
+          npx wrangler@latest pages deploy . \
+            --project-name=YOUR_PAGES_PROJECT_B \
+            --branch=main
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID_3 }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN_3 }}
+
+      - name: 部署到 Cloudflare Account 4
+        if: steps.changed.outputs.should_deploy == 'true'
+        run: |
+          npx wrangler@latest pages deploy . \
+            --project-name=YOUR_PAGES_PROJECT_B \
+            --branch=main
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID_4 }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN_4 }}
+
+      - name: 部署到 Cloudflare Account 5
+        if: steps.changed.outputs.should_deploy == 'true'
+        run: |
+          npx wrangler@latest pages deploy . \
+            --project-name=YOUR_PAGES_PROJECT_B \
+            --branch=main
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID_5 }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN_5 }}
+
+      - name: 部署到 Cloudflare Account 6
+        if: steps.changed.outputs.should_deploy == 'true'
+        run: |
+          npx wrangler@latest pages deploy . \
+            --project-name=YOUR_PAGES_PROJECT_B \
+            --branch=main
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID_6 }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN_6 }}
+
+      - name: 部署到 Cloudflare Account 7
+        if: steps.changed.outputs.should_deploy == 'true'
+        run: |
+          npx wrangler@latest pages deploy . \
+            --project-name=YOUR_PAGES_PROJECT_B \
+            --branch=main
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID_7 }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN_7 }}
+
+      - name: 部署到 Cloudflare Account 8
+        if: steps.changed.outputs.should_deploy == 'true'
+        run: |
+          npx wrangler@latest pages deploy . \
+            --project-name=YOUR_PAGES_PROJECT_B \
+            --branch=main
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID_8 }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN_8 }}
+
+      - name: 部署到 Cloudflare Account 9
+        if: steps.changed.outputs.should_deploy == 'true'
+        run: |
+          npx wrangler@latest pages deploy . \
+            --project-name=YOUR_PAGES_PROJECT_B \
+            --branch=main
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID_9 }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN_9 }}
+
+      - name: 部署到 Cloudflare Account 10
+        if: steps.changed.outputs.should_deploy == 'true'
+        run: |
+          npx wrangler@latest pages deploy . \
+            --project-name=YOUR_PAGES_PROJECT_B \
+            --branch=main
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID_10 }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN_10 }}
